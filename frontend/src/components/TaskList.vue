@@ -27,25 +27,60 @@
 </template>
 
 <script>
+import axios from "axios";
+
 export default {
   name: "TaskList",
 
   data() {
     return {
-      tasks: [{ value: "", placeholder: "Task 1", checked: false }],
+      tasks: [],
     };
   },
 
+  created() {
+    this.fetchTasks();
+  },
+
   methods: {
-    addTask() {
-      this.tasks.push({
-        value: "",
-        placeholder: `Task ${this.tasks.length + 1}`,
-        checked: false,
-      });
+    async fetchTasks() {
+      try {
+        const response = await axios.get("http://localhost:3000/tasks");
+        this.tasks = response.data;
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
+      }
     },
-    removeTask() {
-      this.tasks.pop();
+
+    async addTask() {
+      try {
+        const newTask = {
+          value: "",
+          placeholder: `Task ${this.tasks.length + 1}`,
+          checked: false,
+        };
+        const response = await axios.post(
+          "http://localhost:3000/tasks",
+          newTask,
+        );
+        this.tasks.push(response.data);
+      } catch (error) {
+        console.error("Error adding task:", error);
+      }
+    },
+
+    async removeTask() {
+      try {
+        if (this.tasks.length > 0) {
+          const response = await axios.delete("http://localhost:3000/tasks");
+          const deletedTask = response.data;
+          this.tasks.pop();
+        } else {
+          console.error("No tasks to delete");
+        }
+      } catch (error) {
+        console.error("Error deleting task:", error);
+      }
     },
   },
 };
